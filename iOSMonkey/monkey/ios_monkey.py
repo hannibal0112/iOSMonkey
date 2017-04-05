@@ -1,7 +1,8 @@
-from vendor.wda import *
+from wda import *
 import random
 from threading import Thread, Lock
 import datetime
+import time
 # 需要指定端口
 #
 #
