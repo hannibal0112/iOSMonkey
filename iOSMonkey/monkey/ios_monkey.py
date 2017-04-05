@@ -7,14 +7,14 @@ import time
 #
 #
 
-actions = ['_random_tap', '_random_swipe']
+actions = ['_random_tap', '_random_swipe', '_check_close_wnd']
 
 
 mutex = Lock()
 class CheckFinished(Thread):
 
     def __init__(self, minutes):
-        Thread.__init__(self)
+        super(CheckFinished, self).__init__()
         self._is_finished_task = False
         self._minutes = minutes
 
@@ -41,6 +41,7 @@ class CheckFinished(Thread):
         while True:
             end_time = time.time()
             past_time = (end_time - start_time)
+
             if past_time >= total_seonds:
                 self.set_status(True)
                 break
@@ -82,21 +83,25 @@ class Monkey(object):
         self._session = self._client.session(bundle_id)
 
 
-    def start_monkey(self, image_store_path, func = None, running_time = 5, capture_interval = 5):
-        if func != None:
-            func(self._bundle_id)
+    def start_monkey(self, image_store_path, running_time = 5, capture_interval = 5,
+                                          check_close_wnd = None, check_close_seconds = 5):
 
-        self._image_store_path = image_store_path
+        if image_store_path.endswith("/"):
+            self._image_store_path = image_store_path
+        else:
+            self._image_store_path = image_store_path + "/"
         self._runing_time = running_time
         self._capture_interval = capture_interval
+        self._check_close_seconds = check_close_seconds
 
         check_task = CheckFinished(minutes=running_time + 0.1)
         check_task.start()
 
         self._start_time = time.time()
+        self._start_check_time = time.time()
         self._size = self._session.window_size()
         while True:
-            if check_task.status:
+            if check_task.isAlive() == False:
                 break
             self._screenshot()
             action_index = random.randint(0, len(actions) - 1)
@@ -105,12 +110,20 @@ class Monkey(object):
                 func = getattr(self, action_str)
                 func()
 
+    def _check_close_wnd(self, func):
+        end_time = time.time()
+        past_time = end_time - self._start_check_time
+        if past_time >= self._check_close_seconds:
+            self._start_check_time = time.time()
+            func()
+
     def _screenshot(self):
         end_time = time.time()
         past_time = end_time - self._start_time
         if past_time >= self._capture_interval:
             self._start_time = time.time()
             img_name = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+
             name = self._image_store_path + img_name + ".png"
             self._client.screenshot(name)
 
