@@ -1,3 +1,4 @@
+#-*- encoding: utf-8 -*-
 from wda import *
 import random
 from threading import Thread, Lock
@@ -7,7 +8,8 @@ import time
 #
 #
 
-actions = ['_random_tap', '_random_swipe', '_check_close_wnd']
+actions = ['_random_tap', '_random_swipe']
+#actions = ['_random_tap', '_random_swipe', '_check_close_wnd']
 
 
 mutex = Lock()
@@ -66,7 +68,7 @@ class CaptureImage(Thread):
 
 
 class Monkey(object):
-    def __init__(self, port = 8100, host = '127.0.0.1', protocol='http://', bundle_id = "com.netdragon.quicktest" ,session = None):
+    def __init__(self, port = 8100, host = '192.168.0.169', protocol='http://', bundle_id = "com.netdragon.quicktest" ,session = None):
         self._port = port
         self._host = host
         self._protocol = protocol
@@ -142,9 +144,8 @@ class Monkey(object):
 
 
 if __name__ == '__main__':
-    monkey = Monkey(bundle_id="com.netdragon.quicktest")
-    monkey.start_monkey(image_store_path='/Users/sixleaves/screenshots',
-                        func=None,
+    monkey = Monkey(bundle_id="com.htc.drugmaster.ios")
+    monkey.start_monkey(image_store_path='/tmp',
                         running_time=0.2,
                         capture_interval=5)
 
